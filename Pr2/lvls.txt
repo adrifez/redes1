@@ -1,0 +1,1 @@
+N1 o FÍSICA -> N2 o ENLACE (Ethernet -> 802.3 -> MAC -> 3A:5F:6B:21:34:58) -> N3 o RED (IP) -> N4 o TRANSPORTE (UDP/TCP) -> APLICACIÓN (DNS)

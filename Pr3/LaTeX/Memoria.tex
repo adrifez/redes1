@@ -1,0 +1,75 @@
+% Por Adrián Fernandez y Santiago Gonzalez-Carvajal-
+
+\documentclass[11pt]{article} % Tipo de texto y tamano de letra
+
+\usepackage[spanish]{babel}
+\usepackage[utf8]{inputenc}
+
+\begin{document}
+
+\begin{titlepage}
+\title{Memoria practica 3}
+\date{Noviembre 8, 2017}
+\author{Adrian Fernandez \\ Santiago Gonzalez-Carvajal}
+\maketitle
+\end{titlepage}
+
+\section{Introduccion}
+
+Con motivo de la practica 3 de Redes de Comunicaciones I, debemos utilizar scripts para analizar una traza que simula el trafico real de una red. \par
+En concreto, debemos distinguir los paquetes IP y los no IP y analizar varios parámetros de los paquetes IP, como las direcciones IP destino y origen o, en el caso en el que se trate de TCP o UDP, los puertos destino y origen. \par
+Una vez recopilados estos datos, debemos representarlos en ECDF's mediante scripts y explicar los resultados obtenidos.
+
+\section{Apartado 1}
+\emph{Porcentajes de paquetes (puede incluir una captura de pantalla) (punto 1 de los requisitos):\\
+IP y NO IP (entendemos como NO-IP aquellos paquetes que no son ni ETH|IP ni ETH|VLAN|IP)\\
+UDP, TCP, OTROS sobre los que son IP (igualmente entienda, un paquete IP como aquel que cumpla la pila ETH|IP o ETH|VLAN|IP).\\
+Indique en todos los casos la expresión de filtro utilizada.}
+    
+
+
+\section{Apartado 2}
+\emph{Top 10 de direcciones IP activas (en bytes y paquetes, y por sentido) y top 10 de puertos (en bytes y paquetes, y por sentido) (una captura de pantalla puede ser suficiente).}
+
+
+
+\section{Apartado 3}
+\emph{ECDF de los tamaños a nivel 2 de los paquetes de la traza (una por sentido, utilice la dirección MAC proporcionada por el generador).}
+
+
+
+\section{Apartado 4}
+\emph{ECDF de los tamaños a nivel 3 de los paquetes HTTP de la traza (una por sentido a nivel 4). Entenderemos como HTTP todos aquellos paquetes que usen el puerto 80 de TCP en origen o destino.}
+
+
+
+\section{Apartado 5}
+\emph{ECDF de los tamaños a nivel 3 de los paquetes DNS de la traza (una por sentido a nivel 4). Entenderemos como DNS todos aquellos paquetes que usen el puerto 53 de UDP en origen o destino.}
+
+
+
+\section{Apartado 6}
+\emph{ECDF de los tiempos entre llegadas del flujo TCP indicado por el generador de la traza (una por sentido a nivel 4).}
+
+
+
+\section{Apartado 7}
+\emph{ECDF de los tiempos entre llegadas del flujo UDP indicado por el generador de la traza (una por sentido a nivel 4).}
+
+
+
+\section{Apartado 8}
+\emph{Figura (o figuras) que muestre(n) el caudal/throughput/tasa/ancho de banda a nivel 2 en bits por segundo (b/s) y por sentido (asuma que la dirección Ethernet origen o destino es la indicada por el generador de trazas). Los segundos sin tráfico deben representarse a cero.}
+
+
+
+\section{Apartado 9}
+\emph{Todos los resultados obtenidos deben ser explicados e interpretados por los miembros de la pareja, y quedar reflejados en la memoria.}
+
+
+
+\section{Conclusion}
+
+
+
+\end{document}

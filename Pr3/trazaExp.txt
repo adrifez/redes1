@@ -1,0 +1,11 @@
+santi@santi:~/Descargas$ ./generadorPCAPx64 1301 2 traza.pcap
+
+Generando traza (traza.pcap) para la pareja 2 del grupo 1301. (id=130102)
+Epoch de inicio: 1509097218
+
+Información útil para el estudiante:
+La dirección MAC que deberá tener en cuenta es: 00:11:88:CC:33:32
+La dirección IP (origen o destino) del flujo TCP que deberá tener en cuenta es: 36.173.217.43
+El puerto (origen o destino) del flujo UDP que deberá tener en cuenta es: 49714
+
+PCAP generado con éxito!
