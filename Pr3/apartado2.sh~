@@ -17,7 +17,7 @@ awk 'BEGIN {
 }
 END {
 	for (valor in numero_bytes) {
-		print valor","numero_bytes[valor]","numero_paquetes[valor];
+		print valor"\t"numero_bytes[valor]"\t"numero_paquetes[valor];
 	}
 }' a2/topip.dat > a2/ipsrc.dat
 
@@ -30,7 +30,7 @@ awk 'BEGIN {
 }
 END {
 	for (valor in numero_bytes) {
-		print valor","numero_bytes[valor]","numero_paquetes[valor];
+		print valor"\t"numero_bytes[valor]"\t"numero_paquetes[valor];
 	}
 }' a2/topip.dat > a2/ipdst.dat
 
@@ -43,7 +43,7 @@ awk 'BEGIN {
 }
 END {
 	for (valor in numero_bytes) {
-		print valor","numero_bytes[valor]","numero_paquetes[valor];
+		print valor"\t"numero_bytes[valor]"\t"numero_paquetes[valor];
 	}
 }' a2/toptcp.dat > a2/tcpsrc.dat
 
@@ -56,7 +56,7 @@ awk 'BEGIN {
 }
 END {
 	for (valor in numero_bytes) {
-		print valor","numero_bytes[valor]","numero_paquetes[valor];
+		print valor"\t"numero_bytes[valor]"\t"numero_paquetes[valor];
 	}
 }' a2/toptcp.dat > a2/tcpdst.dat
 
@@ -69,7 +69,7 @@ awk 'BEGIN {
 }
 END {
 	for (valor in numero_bytes) {
-		print valor","numero_bytes[valor]","numero_paquetes[valor];
+		print valor"\t"numero_bytes[valor]"\t"numero_paquetes[valor];
 	}
 }' a2/topudp.dat > a2/udpsrc.dat
 
@@ -82,45 +82,45 @@ awk 'BEGIN {
 }
 END {
 	for (valor in numero_bytes) {
-		print valor","numero_bytes[valor]","numero_paquetes[valor];
+		print valor"\t"numero_bytes[valor]"\t"numero_paquetes[valor];
 	}
 }' a2/topudp.dat > a2/udpdst.dat
 
 
 #Impresion de lo pedido en el segundo apartado
 echo Direcciones IP origen en bytes:
-head -n 10 a2/ipsrc.dat | sort -t, -k2nr
+head -n 10 a2/ipsrc.dat | sort -t"\t" -k2nr
 
 echo Direcciones IP origen en paquetes:
-head -n 10 a2/ipsrc.dat | sort -t, -k3nr
+head -n 10 a2/ipsrc.dat | sort -t"\t" -k3nr
 
 echo Direcciones IP destino en bytes:
-head -n 10 a2/ipdst.dat | sort -t, -k2nr
+head -n 10 a2/ipdst.dat | sort -t"\t" -k2nr
 
 echo Direcciones IP destino en paquetes:
-head -n 10 a2/ipdst.dat | sort -t, -k3nr
+head -n 10 a2/ipdst.dat | sort -t"\t" -k3nr
 
 echo Puertos TCP origen en bytes:
-head -n 10 a2/tcpsrc.dat | sort -t, -k2nr
+head -n 10 a2/tcpsrc.dat | sort -t"\t" -k2nr
 
 echo Puertos TCP origen en paquetes:
-head -n 10 a2/tcpsrc.dat | sort -t, -k3nr
+head -n 10 a2/tcpsrc.dat | sort -t"\t" -k3nr
 
 echo Puertos TCP destino en bytes:
-head -n 10 a2/tcpdst.dat | sort -t, -k2nr
+head -n 10 a2/tcpdst.dat | sort -t"\t" -k2nr
 
 echo Puertos TCP destino en paquetes:
-head -n 10 a2/tcpdst.dat | sort -t, -k3nr
+head -n 10 a2/tcpdst.dat | sort -t"\t" -k3nr
 
 echo Puertos UDP origen en bytes:
-head -n 10 a2/udpsrc.dat | sort -t, -k2nr
+head -n 10 a2/udpsrc.dat | sort -t"\t" -k2nr
 
 echo Puertos UDP origen en paquetes:
-head -n 10 a2/udpsrc.dat | sort -t, -k3nr
+head -n 10 a2/udpsrc.dat | sort -t"\t" -k3nr
 
 echo Puertos UDP destino en bytes:
-head -n 10 a2/udpdst.dat | sort -t, -k2nr
+head -n 10 a2/udpdst.dat | sort -t"\t" -k2nr
 
 echo Puertos UDP destino en paquetes:
-head -n 10 a2/udpdst.dat | sort -t, -k3nr
+head -n 10 a2/udpdst.dat | sort -t"\t" -k3nr
 
