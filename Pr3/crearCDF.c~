@@ -22,7 +22,7 @@
 int crearCDF(char* filename_data, char* filename_cdf);
 
 int main(){
-	return crearCDF("sizes.dat","ECDFsizes.dat");
+	return crearCDF("sizes.dat","gnu.dat");
 }
 
 int crearCDF(char* filename_data, char* filename_cdf) {
