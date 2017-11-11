@@ -10,8 +10,21 @@ set ylabel "P(d <= Delta)"
 set key top left
 
 #Plot
-set title "ECDF delta IP 36.173.217.43 origen (TCP)"
+set title "ECDF delta direccion IP 36.173.217.43 origen (TCP)"
 set output "ECDF_delta_tcp_src.png"
-plot "gnu.dat" using 1:2 with lines title "F(d)" lt rgb "red"
+plot "plotTS.dat" using 1:2 with lines title "F(d)" lt rgb "red"
+
+set title "ECDF delta direccion IP 36.173.217.43 destino (TCP)"
+set output "ECDF_delta_tcp_dst.png"
+plot "plotTD.dat" using 1:2 with lines title "F(d)" lt rgb "red"
+
+set title "ECDF delta puerto UDP 49714 origen 49714"
+set output "ECDF_delta_udp_src.png"
+plot "plotUS.dat" using 1:2 with lines title "F(d)" lt rgb "red"
+
+set title "ECDF delta puerto UDP 49714 destino 49714"
+set output "ECDF_delta_udp_dst.png"
+plot "plotUD.dat" using 1:2 with lines title "F(d)" lt rgb "red"
+
 
 set output
