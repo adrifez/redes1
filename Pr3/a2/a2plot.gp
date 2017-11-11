@@ -1,5 +1,5 @@
 #!/usr/bin/gnuplot
-#chmod +x ipsrc.gp
+#chmod +x a2plot.gp
 
 # Parametros
 set boxwidth 0.9 absolute
@@ -8,6 +8,7 @@ set style histogram clustered gap 1 title textcolor lt -1
 set datafile missing '-'
 set style data histograms
 set xtics border in scale 0,0 nomirror rotate by -45  autojustify
+set logscale y
 
 # Para salida a un archivo tipo portable network graphics
 set terminal pngcairo transparent enhanced font "arial,10" fontscale 1.0 size 600, 400
