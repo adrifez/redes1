@@ -24,6 +24,8 @@ awk '{numero_paquetes[$1] = numero_paquetes[$1] + 1; n_paquetes = n_paquetes + 1
 awk '{numero_paquetes[$1] = numero_paquetes[$1] + 1; n_paquetes = n_paquetes + 1;} END{for (valor in numero_paquetes) print valor" "(numero_paquetes[valor]/n_paquetes);}' sizes5src.dat | sort -k1n > a3/gnuord5s.dat
 awk '{numero_paquetes[$1] = numero_paquetes[$1] + 1; n_paquetes = n_paquetes + 1;} END{for (valor in numero_paquetes) print valor" "(numero_paquetes[valor]/n_paquetes);}' sizes5dst.dat | sort -k1n > a3/gnuord5d.dat
 
+rm -rf sizes3src.dat sizes3dst.dat sizes4src.dat sizes4dst.dat sizes5src.dat sizes5dst.dat
+
 cd a3
 
 #Preparamos el fichero ECDF

@@ -26,6 +26,8 @@ END{for (valor in numero_deltas) print valor" "(numero_deltas[valor]/n_intervalo
 awk '{numero_deltas[$1] = numero_deltas[$1] + 1; n_intervalos = n_intervalos + 1;}
 END{for (valor in numero_deltas) print valor" "(numero_deltas[valor]/n_intervalos);}' deltaUD.dat > probUD.dat
 
+rm -rf deltaTS.dat deltaTD.dat deltaUS.dat deltaUD.dat
+
 #Preparamos los ficheros ECDF
 export LC_NUMERIC=en_US.utf-8
 sort -k1g probTS.dat > probTSo.dat
