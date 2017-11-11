@@ -38,13 +38,13 @@ echo No existen datos para la grafica del flujo UDP origen
 sort -k1g probUD.dat > probUDo.dat
 awk 'BEGIN{FS=" "} {acum=acum+$2; print $1" "acum;}' probUDo.dat > plotUD.dat
 
-#rm -rf probTS.dat probTD.dat probUS.dat probUD.dat
-#rm -rf probTSo.dat probTDo.dat probUSo.dat probUDo.dat
+rm -rf probTS.dat probTD.dat probUS.dat probUD.dat
+rm -rf probTSo.dat probTDo.dat probUSo.dat probUDo.dat
 
 #Grafica
 ./a5plot.gp
 
-#rm -rf plotTS.dat plotTD.dat plotUS.dat plotUD.dat
+rm -rf plotTS.dat plotTD.dat plotUS.dat plotUD.dat
 cd ..
 
 echo APARTADO 5 REALIZADO CON EXITO
