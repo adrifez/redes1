@@ -18,9 +18,10 @@ set title "ECDF delta direccion IP 36.173.217.43 destino (TCP)"
 set output "ECDF_delta_tcp_dst.png"
 plot "plotTD.dat" using 1:2 with lines title "F(d)" lt rgb "red"
 
-set title "ECDF delta puerto UDP 49714 origen 49714"
-set output "ECDF_delta_udp_src.png"
-plot "plotUS.dat" using 1:2 with lines title "F(d)" lt rgb "red"
+#No existen datos para esta grafica
+#set title "ECDF delta puerto UDP 49714 origen 49714"
+#set output "ECDF_delta_udp_src.png"
+#plot "plotUS.dat" using 1:2 with lines title "F(d)" lt rgb "red"
 
 set title "ECDF delta puerto UDP 49714 destino 49714"
 set output "ECDF_delta_udp_dst.png"
