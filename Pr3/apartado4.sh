@@ -15,10 +15,10 @@ awk 'BEGIN {FS="|";}
 }' aux.dat > limpio.dat
 rm -rf aux.dat
 
-#Limpiamos el fichero para poder representar con gnuplot
+#Limpiamos el fichero para poder representar con gnuplot y pasamos los Bytes a bits
 awk 'BEGIN {FS=" ";}
 {
-	print $1"-"$3" "$4" "$5;
+	print $1"-"$3" "8*$4" "8*$5;
 }' limpio.dat > plot.dat
 rm -rf limpio.dat
 
