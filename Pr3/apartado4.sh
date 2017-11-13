@@ -24,7 +24,7 @@ rm -rf limpio.dat
 
 head -n 46 plot.dat > plot1.dat
 head -n 92 plot.dat | tail -n 46 > plot2.dat
-head -n 138 plot.dat | tail -n 46 > plot3.dat
+head -n 138 plot.dat | tail -n 43 > plot3.dat
 
 #Grafica
 ./a4plot.gp
