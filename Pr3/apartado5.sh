@@ -49,5 +49,5 @@ rm -rf probTSo.dat probTDo.dat probUSo.dat probUDo.dat
 rm -rf plotTS.dat plotTD.dat plotUS.dat plotUD.dat
 cd ..
 
-echo APARTADO 5 REALIZADO CON EXITO
+echo QUINTO APARTADO REALIZADO CON EXITO
 printf "\n\n"

@@ -32,5 +32,5 @@ rm -rf plot.dat plot1.dat plot2.dat plot3.dat
 
 cd ..
 
-echo APARTADO 4 REALIZADO CON EXITO
+echo CUARTO APARTADO REALIZADO CON EXITO
 printf "\n\n"
