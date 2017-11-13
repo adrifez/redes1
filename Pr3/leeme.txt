@@ -1,0 +1,7 @@
+-El apartado 6 del script está repartido en los apartados 2 y 3.
+-Hemos implementado un script por apartado (salvo para el 6, por lo dicho anteriormente), y además un script para generar las gráficas de 
+cada apartado. Y además, un script general encargado de ejecutar el script de cada apartado (practica3_analisis.sh).
+Scripts de apartados: apartadoN.sh (El script de cada apartado ejecuta su correspondiente script para generar las gráficas pedidas, con nombre: aNplot.gp).
+-Es importante mantener la estructura de directorios, ya que cada script genera sus resultados en su propio directorio.
+
+Autores: Adrián Fernández Amador y Santiago González- Carvajal Centenera.

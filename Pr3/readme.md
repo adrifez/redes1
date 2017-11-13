@@ -1,1 +1,0 @@
-El apartado 6 del script está repartido entre los scripts del apartado 2 y el 3
