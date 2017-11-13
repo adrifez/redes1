@@ -23,7 +23,7 @@ plot "plotTD.dat" using 1:2 with lines title "F(d)" lt rgb "red"
 #set output "ECDF_delta_udp_src.png"
 #plot "plotUS.dat" using 1:2 with lines title "F(d)" lt rgb "red"
 
-set title "ECDF delta puerto UDP 49714 destino 49714"
+set title "ECDF delta puerto UDP 49714 destino"
 set output "ECDF_delta_udp_dst.png"
 plot "plotUD.dat" using 1:2 with lines title "F(d)" lt rgb "red"
 
