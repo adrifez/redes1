@@ -5,7 +5,7 @@
 set term pngcairo transparent enhanced font "arial,10" fontscale 1.0 size 600, 400
 
 #Parametros
-set xlabel "Delta"
+set xlabel "Delta(s)"
 set ylabel "P(d <= Delta)"
 set key top left
 
