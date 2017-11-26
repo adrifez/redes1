@@ -44,6 +44,9 @@ int main(int argc, char **argv){
 	char opt;
 	char flag_iface = 0, flag_ip = 0, flag_port = 0, flag_file = 0;
 
+
+	FILE *archivo_datos=NULL;
+
 	static struct option options[] = {
 		{"if",required_argument,0,'1'},
 		{"ip",required_argument,0,'2'},
@@ -87,13 +90,22 @@ int main(int argc, char **argv){
 
 				if(strcmp(optarg,"stdin")==0) {
 					if (fgets(data, sizeof data, stdin)==NULL) {
-						  	printf("Error leyendo desde stdin: %s %s %d.\n",errbuf,__FILE__,__LINE__);
+						printf("Error leyendo desde stdin: %s %s %d.\n",errbuf,__FILE__,__LINE__);
 						return ERROR;
 					}
 					sprintf(fichero_pcap_destino,"%s%s","stdin",".pcap");
 				} else {
 					sprintf(fichero_pcap_destino,"%s%s",optarg,".pcap");
-					//TODO Leer fichero en data [...]
+					archivo_datos=fopen(fichero_pcap_destino, "r");
+					if(archivo_datos==NULL) {
+						printf("Error al abrir el archivo %s.\n",fichero_pcap_destino);
+						return ERROR;
+					}
+					if (fgets(data, sizeof data, archivo_datos)==NULL) {
+						printf("Error leyendo desde el archivo de datos: %s %s %d.\n",errbuf,__FILE__,__LINE__);
+						return ERROR;
+					}
+					fclose(archivo_datos);
 				}
 				flag_file = 1;
 
