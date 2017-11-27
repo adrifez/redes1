@@ -95,10 +95,9 @@ int main(int argc, char **argv){
 					}
 					sprintf(fichero_pcap_destino,"%s%s","stdin",".pcap");
 				} else {
-					sprintf(fichero_pcap_destino,"%s%s",optarg,".pcap");
-					archivo_datos=fopen(fichero_pcap_destino, "r");
+					archivo_datos=fopen(optarg, "r");
 					if(archivo_datos==NULL) {
-						printf("Error al abrir el archivo %s.\n",fichero_pcap_destino);
+						printf("Error al abrir el archivo %s.\n",optarg);
 						return ERROR;
 					}
 					if (fgets(data, sizeof data, archivo_datos)==NULL) {
@@ -106,6 +105,7 @@ int main(int argc, char **argv){
 						return ERROR;
 					}
 					fclose(archivo_datos);
+					sprintf(fichero_pcap_destino,"%s%s",optarg,".pcap");
 				}
 				flag_file = 1;
 
@@ -237,7 +237,8 @@ uint8_t moduloUDP(uint8_t* mensaje,uint64_t longitud, uint16_t* pila_protocolos,
 	uint16_t aux16;
 	uint32_t pos=0;
 	uint16_t protocolo_inferior=pila_protocolos[1];
-printf("modulo UDP(%"PRIu16") %s %d.\n",protocolo_inferior,__FILE__,__LINE__);
+	
+	printf("modulo UDP(%"PRIu16") %s %d.\n",protocolo_inferior,__FILE__,__LINE__);
 
 	if (longitud>(pow(2,16)-UDP_HLEN)){
 		printf("Error: mensaje demasiado grande para UDP (%f).\n",(pow(2,16)-UDP_HLEN));
@@ -246,17 +247,25 @@ printf("modulo UDP(%"PRIu16") %s %d.\n",protocolo_inferior,__FILE__,__LINE__);
 
 	Parametros udpdatos=*((Parametros*)parametros);
 	uint16_t puerto_destino=udpdatos.puerto_destino;
-
-//TODO
-//[...] 
-//obtenerPuertoOrigen(·)
+	obtenerPuertoOrigen(&puerto_origen);
 	aux16=htons(puerto_origen);
+
+	memcpy(segmento+pos,&aux16,sizeof(uint16_t));
+	pos+=sizeof(uint16_t);
+	memcpy(segmento+pos,&puerto_destino,sizeof(uint16_t));
+	pos+=sizeof(uint16_t);
+	memcpy(segmento+pos,&longitud,sizeof(uint16_t));
+	pos+=sizeof(uint16_t);
+
+	aux16=0x0000;
 	memcpy(segmento+pos,&aux16,sizeof(uint16_t));
 	pos+=sizeof(uint16_t);
 	
-//TODO Completar el segmento [...]
-//[...] 
-//Se llama al protocolo definido de nivel inferior a traves de los punteros registrados en la tabla de protocolos registrados
+	memcpy(segmento+pos,mensaje,longitud);
+	pos+=longitud;
+	
+
+	//Se llama al protocolo definido de nivel inferior a traves de los punteros registrados en la tabla de protocolos registrados
 	return protocolos_registrados[protocolo_inferior](segmento,longitud+pos,pila_protocolos,parametros);
 }
 
