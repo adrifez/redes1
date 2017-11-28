@@ -304,14 +304,27 @@ uint8_t moduloIP(uint8_t* segmento, uint64_t longitud, uint16_t* pila_protocolos
 	if(obtenerIPInterface(interface, IP_origen) == ERROR) return ERROR;
 	
 	if(ARPrequest(interface, IP_destino, (Parametros*)parametros.ETH_destino) == ERROR) return ERROR; //Obtenemos la MAC a la que hemos de enviar el paquete
+	 
+	datagrama[0]=0x45; // IPv4 IHL=5 -> 5 palabras de 32 bits
+	datagrama[1]=0x00; //Tipo de servicio
 	
-	aux8 = 0x45; // IPv4 IHL=5 -> 5 palabras de 32 bits 
-	datagrama[0]=aux_8;
-	datagrama[1]=(Parametros*)parametros.tipo; //Tipo de servicio?
-	//Tamanio depende de si esta fragmentado o no, ya lo pensaremos
-	//Todos los fragmentos tendran el mismo identificador
-	//... (Tiempo de vida, flags, etc.)
-	
+	aux16 = 70;
+	memcpy(datagrama+16, &htons(aux16), sizeof(aux16)); //Longitud total
+
+	//Generamos un identificador con los campos del protocolo superior
+	memcpy(&aux16, segmemto, sizeof(aux16));
+	aux16=htons(aux16);
+	memcpy(datagrama+32, &aux16, sizeof(aux16));
+
+	/*
+	FLAGS:
+    bit 0: Reservado; debe ser 0
+    bit 1: 0 = Divisible, 1 = No Divisible (DF)
+    bit 2: 0 = Último Fragmento, 1 = Fragmento Intermedio (le siguen más fragmentos) (MF) 
+	POSICION:
+	en caso de fragmentado
+	*/
+
 	//UDP->17, ICMP->1
 	aux=datagrama+(32*2);
 	if(protocolo_superior == UDP_PROTO){
@@ -332,9 +345,6 @@ uint8_t moduloIP(uint8_t* segmento, uint64_t longitud, uint16_t* pila_protocolos
 	aux[2]=IP_destino[2];
 	aux[3]=IP_destino[3];
 	
-//TODO
-//Llamar a ARPrequest(·) adecuadamente y usar ETH_destino de la estructura parametros
-//[...] 
 //TODO A implementar el datagrama y fragmentación (en caso contrario, control de tamano)
 //[...] 
 //llamada/s a protocolo de nivel inferior [...]
