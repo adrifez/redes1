@@ -167,7 +167,7 @@ int main(int argc, char **argv){
 		//Rellenamos los parametros necesario para enviar el paquete a su destinatario y proceso
 	Parametros parametros_udp; memcpy(parametros_udp.IP_destino,IP_destino_red,IP_ALEN); parametros_udp.puerto_destino=puerto_destino;
 		//Enviamos
-	if(enviar((uint8_t*)data,pila_protocolos,strlen(data),&parametros_udp)==ERROR ){
+	if(enviar((uint8_t*)data,strlen(data),pila_protocolos,&parametros_udp)==ERROR ){
 		printf("Error: enviar(): %s %s %d.\n",errbuf,__FILE__,__LINE__);
 		return ERROR;
 	}
@@ -178,7 +178,7 @@ int main(int argc, char **argv){
 		//Luego, un paquete ICMP en concreto un ping
 	pila_protocolos[0]=ICMP_PROTO; pila_protocolos[1]=IP_PROTO; pila_protocolos[2]=0;
 	Parametros parametros_icmp; parametros_icmp.tipo=PING_TIPO; parametros_icmp.codigo=PING_CODE; memcpy(parametros_icmp.IP_destino,IP_destino_red,IP_ALEN);
-	if(enviar((uint8_t*)"Probando a hacer un ping",pila_protocolos,strlen("Probando a hacer un ping"),&parametros_icmp)==ERROR ){
+	if(enviar((uint8_t*)"Probando a hacer un ping", strlen("Probando a hacer un ping"), pila_protocolos, &parametros_icmp)==ERROR ){
 		printf("Error: enviar(): %s %s %d.\n",errbuf,__FILE__,__LINE__);
 		return ERROR;
 	}
@@ -217,9 +217,6 @@ printf("Enviar(%"PRIu16") %s %d.\n",protocolo,__FILE__,__LINE__);
 	return ERROR;
 }
 
-
-/***************************TODO Pila de protocolos a implementar************************************/
-
 /****************************************************************************************
 * Nombre: moduloUDP 									*
 * Descripcion: Esta funcion implementa el modulo de envio UDP				*
@@ -230,12 +227,13 @@ printf("Enviar(%"PRIu16") %s %d.\n",protocolo,__FILE__,__LINE__);
 *  -parametros: parametros necesario para el envio este protocolo			*
 * Retorno: OK/ERROR									*
 ****************************************************************************************/
-
 uint8_t moduloUDP(uint8_t* mensaje,uint64_t longitud, uint16_t* pila_protocolos,void *parametros){
 	uint8_t segmento[UDP_SEG_MAX]={0};
+	uint8_t *aux=NULL;
+	int i=0;
 	uint16_t puerto_origen = 0,suma_control=0;
 	uint16_t aux16;
-	uint32_t pos=0;
+	uint64_t pos=0;
 	uint16_t protocolo_inferior=pila_protocolos[1];
 	
 	printf("modulo UDP(%"PRIu16") %s %d.\n",protocolo_inferior,__FILE__,__LINE__);
@@ -262,11 +260,15 @@ uint8_t moduloUDP(uint8_t* mensaje,uint64_t longitud, uint16_t* pila_protocolos,
 	memcpy(segmento+pos,&aux16,sizeof(uint16_t));
 	pos+=sizeof(uint16_t);
 	
-	memcpy(segmento+pos,mensaje,longitud);
+	//memcpy(segmento+pos,mensaje,longitud); //Tenemos que comprobar que el orden es el correcto
+	aux=segmento+pos;
+	for(i=0; i < longitud; i++){
+		aux[i]=mensaje[i];
+	}
 	pos+=longitud;
 
 	//Se llama al protocolo definido de nivel inferior a traves de los punteros registrados en la tabla de protocolos registrados
-	return protocolos_registrados[protocolo_inferior](segmento,longitud+pos,pila_protocolos,parametros);
+	return protocolos_registrados[protocolo_inferior](segmento,pos,pila_protocolos,parametros);
 }
 
 
@@ -281,14 +283,14 @@ uint8_t moduloUDP(uint8_t* mensaje,uint64_t longitud, uint16_t* pila_protocolos,
 * Retorno: OK/ERROR									*
 *
 * ***************************************************************************************/
-
-
-
 uint8_t moduloIP(uint8_t* segmento, uint64_t longitud, uint16_t* pila_protocolos,void *parametros){
+	srand(NULL);
+	int fragmentos=-1, i, j, last_size;
+	uint64_t length=0, aux64;
 	uint8_t datagrama[IP_DATAGRAM_MAX]={0};
 	uint32_t aux32;
-	uint16_t aux16;
-	uint8_t aux8, *aux=NULL;
+	uint16_t aux16, aux16_1=0x0000, random_id, mtu, fl_off, offset;
+	uint8_t aux8, *aux=NULL, aux8_cs[2]={0};
 	uint32_t pos=0,pos_control=0;
 	uint8_t IP_origen[IP_ALEN];
 	uint16_t protocolo_superior=pila_protocolos[0];
@@ -303,35 +305,46 @@ uint8_t moduloIP(uint8_t* segmento, uint64_t longitud, uint16_t* pila_protocolos
 	
 	if(obtenerIPInterface(interface, IP_origen) == ERROR) return ERROR;
 	
+	//ESTA MAL, TENEMOS QUE COMPROBAR RANGOS PARA ENVIAR ARP DE LA DIRECCION IP DESTINO CORRECTA
 	if(ARPrequest(interface, IP_destino, (Parametros*)parametros.ETH_destino) == ERROR) return ERROR; //Obtenemos la MAC a la que hemos de enviar el paquete
 	 
 	datagrama[0]=0x45; // IPv4 IHL=5 -> 5 palabras de 32 bits
-	datagrama[1]=0x00; //Tipo de servicio
+	datagrama[1]=(Parametros*)parametros.tipo; //Tipo
+
+	random_id = (uint16_t) rand() % MAX_PROTOCOL; //Generamos un numero de 16 bits aleatorio
+	memcpy(datagrama+32, &random_id, sizeof(random_id));
+
+	aux64 = longitud + (5*4); //5 palabras de 32 bits = 5 palabras de 4 bytes
+	if(obtenerMTUInterface(interface, &mtu)==ERROR) return ERROR;
+	if(aux64 > IP_DATAGRAM_MAX){
+		perror("El paquete excede el tamanio maximo para un datagrama");
+		
+		return ERROR;
+	}
 	
-	aux16 = 70;
-	memcpy(datagrama+16, &htons(aux16), sizeof(aux16)); //Longitud total
-
-	//Generamos un identificador con los campos del protocolo superior
-	memcpy(&aux16, segmemto, sizeof(aux16));
-	aux16=htons(aux16);
-	memcpy(datagrama+32, &aux16, sizeof(aux16));
-
-	/*
-	FLAGS:
-    bit 0: Reservado; debe ser 0
-    bit 1: 0 = Divisible, 1 = No Divisible (DF)
-    bit 2: 0 = Último Fragmento, 1 = Fragmento Intermedio (le siguen más fragmentos) (MF) 
-	POSICION:
-	en caso de fragmentado
-	*/
+	if(aux64 > (uint64_t)mtu){ //En este caso fragmentamos, veamos el numero de fragmentos
+		fragmentos = (int)ceil((aux64-5*4)/(mtu-5*4)); //Restamos el tamanio destinado a la cabecera IP
+		last_size = (aux64-5*4) - ((fragmentos-1)*(mtu-5*4)); //Tamanio del ultimo fragmento de datos
+	}
+	
+	aux=datagrama+(32+16);
+	aux[0]=0x00; //Flags y primer bit de posicion por defecto
+	aux[1]=0x00; //Resto de posicion por defecto
+	aux[2]=128;  //Tiempo de vida por defecto
+	//Nota: si se fragmenta se cambian despues los campos necesarios
 
 	//UDP->17, ICMP->1
-	aux=datagrama+(32*2);
+	aux+=16;
 	if(protocolo_superior == UDP_PROTO){
 		aux[1] = 17;
 	} else if(protocolo_superior == ICMP_PROTO){
 		aux[1] = 1;
 	} else return ERROR;
+	
+	//Suma de control de cabecera
+	aux+=16;
+	aux[0]=0x00;
+	aux[1]=0x00:
 	
 	aux+=32;
 	aux[0]=IP_origen[0];
@@ -345,11 +358,85 @@ uint8_t moduloIP(uint8_t* segmento, uint64_t longitud, uint16_t* pila_protocolos
 	aux[2]=IP_destino[2];
 	aux[3]=IP_destino[3];
 	
-//TODO A implementar el datagrama y fragmentación (en caso contrario, control de tamano)
-//[...] 
-//llamada/s a protocolo de nivel inferior [...]
-
-
+	aux+=32; //aux=datagrama+(32*5)
+	
+	if(fragmentos == -1){ //Si no hay fragmentacion, enviamos el paquete
+		aux16=(uint16_t)aux64;
+		aux16=htons(aux16);
+		memcpy(datagrama+16, &aux16, sizeof(aux16)); //Longitud total
+		
+		if(calcularChecksum(5*4, datagrama, aux8_cs)==ERROR) return ERROR;
+		//memcpy(aux, segmento, longitud); //Despues de la cabecera IP, viene la UDP con los datos; Tenemos que comprobar el orden
+		//Copiamos la cabecera UDP y los datos
+		for(i=0; i<longitud; i++){
+			aux[i]=segmento[i];
+		}
+		
+		//Fijamos el checksum
+		aux=datagrama+(64+16);
+		aux[0]=aux8_cs[0];
+		aux[1]=aux8_cs[1];
+		
+		return protocolos_registrados[protocolo_inferior](datagrama,aux64,pila_protocolos,parametros);
+	}
+	
+	for(i=0; i<fragmentos; i++){ //Fragmentamos el paquete
+		if(i != (fragmentos-1)){
+			aux=datagrama+(32+16);
+			aux16 = 0x2000; //Los 3 bits de flags son 001 divisible(2º cero) more fragments (3er 1)
+			if(i!=0)aux16_1+=mtu-(5*4); //Offset (posicion)=tamanio maximo-tamanio de la cabecera (ya que es el offset del segmento)
+			offset=aux16_1/8; //Se mide en el orden de 64 Bytes
+			fl_off=aux16|offset;
+			fl_off=htons(fl_off);			
+			memcpy(aux, &fl_off, sizeof(fl_off));
+			
+			aux=datagrama+(32*5);
+			for(j=0; j<(mtu-(5*4)); j++){ //Fijamos su correspondiente fragmento
+				aux[j]=segmento[j+aux16_1];
+			}
+			
+			aux16=(uint16_t)mtu;
+			aux16=htons(aux16);
+			memcpy(datagrama+16, &aux16, sizeof(aux16)); //Longitud total
+		
+			if(calcularChecksum(5*4, datagrama, aux8_cs)==ERROR) return ERROR;
+		
+			//Fijamos el checksum
+			aux=datagrama+(64+16);
+			aux[0]=aux8_cs[0];
+			aux[1]=aux8_cs[1];
+			
+			protocolos_registrados[protocolo_inferior](datagrama,mtu,pila_protocolos,parametros);		
+		}
+		if(i == (fragmentos-1)){ //El ultimo fragmento
+			//No hay mas fragmentos
+			aux=datagrama+(32+16);
+			aux16_1+=mtu-(5*4);
+			offset=aux16_1/8;
+			memcpy(aux, &offset, sizeof(offset));
+			
+			aux=datagrama+(32*5);
+			for(j=0; j<last_size; j++){ //Fijamos su correspondiente fragmento
+				aux[j]=segmento[j+aux16_1];
+			}
+			for(j=last_size; j < mtu-(5*4); j++){ //Vaciamos el resto del datagrama (aunque no es necesario)
+				aux[j]=0;
+			}
+			
+			aux16=(uint16_t)last_size+5*4;
+			aux16=htons(aux16);
+			memcpy(datagrama+16, &aux16, sizeof(aux16)); //Longitud total
+		
+			if(calcularChecksum(5*4, datagrama, aux8_cs)==ERROR) return ERROR;
+		
+			//Fijamos el checksum
+			aux=datagrama+(64+16);
+			aux[0]=aux8_cs[0];
+			aux[1]=aux8_cs[1];
+			
+			return protocolos_registrados[protocolo_inferior](datagrama,(uint64_t)last_size+5*4,pila_protocolos,parametros);	
+		}
+	}
 }
 
 
