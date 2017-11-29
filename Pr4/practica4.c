@@ -231,7 +231,7 @@ uint8_t moduloUDP(uint8_t* mensaje,uint64_t longitud, uint16_t* pila_protocolos,
 	uint8_t segmento[UDP_SEG_MAX]={0};
 	uint8_t *aux=NULL;
 	int i=0;
-	uint16_t puerto_origen = 0,suma_control=0;
+	uint16_t puerto_origen = 0;
 	uint16_t aux16;
 	uint64_t pos=0;
 	uint16_t protocolo_inferior=pila_protocolos[1];
@@ -284,7 +284,7 @@ uint8_t moduloUDP(uint8_t* mensaje,uint64_t longitud, uint16_t* pila_protocolos,
 *
 * ***************************************************************************************/
 uint8_t moduloIP(uint8_t* segmento, uint64_t longitud, uint16_t* pila_protocolos,void *parametros){
-	srand(NULL);
+	srand(time(NULL));
 	int fragmentos=-1, i, j, last_size;
 	uint64_t length=0, aux64;
 	uint8_t datagrama[IP_DATAGRAM_MAX]={0}, flag_subred=0;
@@ -536,7 +536,7 @@ uint8_t moduloETH(uint8_t* datagrama, uint64_t longitud, uint16_t* pila_protocol
 ****************************************************************************************/
 
 uint8_t moduloICMP(uint8_t* mensaje,uint64_t longitud, uint16_t* pila_protocolos,void *parametros){
-	srand(NULL);
+	srand(time(NULL));
 	int i=0;
 	uint8_t datagrama_ICMP[ICMP_DATAGRAM_MAX]={0}, aux8_cs[2];
 	uint8_t *aux=NULL;
