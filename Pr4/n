@@ -1,9 +1,0 @@
-//version un 4, ihl un 5, tipo de servicio a 0, longitud total calculando con los datos
-	// identificador aleatorio con rand() de un uint16_t, con cuidado de que sea el mismo para todos
-	// los fragmentos del mismo paquete fragmentado; flag y offset(cuidado porque hay que ponerlo dividido entre 8) 
-	// en funcion de si es fragmento o no; ttl un valor parecido a uno de una captura que veamos (64 o 128); protocolo (1 si es ICMP
-// y 17 si es UDP); checksum se genera con funcion; ip origen se calcula con funcion y la ip destino es parametro
-
-
-
-

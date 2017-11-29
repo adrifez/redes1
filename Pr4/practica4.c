@@ -474,7 +474,7 @@ uint8_t moduloETH(uint8_t* datagrama, uint64_t longitud, uint16_t* pila_protocol
 	uint8_t ETH_destino[ETH_ALEN], ETH_origen[ETH_ALEN];
 	uint16_t protocolo_superior=pila_protocolos[1];
 	uint16_t eth_t;
-	struct pcap_pkthdr *cabecera=NULL;
+	struct pcap_pkthdr cabecera;
 
 	printf("modulo ETH(fisica) %s %d.\n",__FILE__,__LINE__);	
 
@@ -514,11 +514,12 @@ uint8_t moduloETH(uint8_t* datagrama, uint64_t longitud, uint16_t* pila_protocol
 	
 	if(pcap_sendpacket(descr, trama, longitud+ETH_HLEN) != 0) return ERROR;
 	
-	pcap_dump(pdumper, cabecera, trama);
-
-//TODO
-//Almacenamos la salida por cuestiones de debugging [...]
+	gettimeofday(&(cabecera.ts),NULL);
+	cabecera.len=longitud+ETH_HLEN;
+	cabecera.caplen=longitud+ETH_HLEN;
 	
+	pcap_dump(pdumper, &cabecera, trama);
+
 	return OK;
 }
 
@@ -535,9 +536,42 @@ uint8_t moduloETH(uint8_t* datagrama, uint64_t longitud, uint16_t* pila_protocol
 ****************************************************************************************/
 
 uint8_t moduloICMP(uint8_t* mensaje,uint64_t longitud, uint16_t* pila_protocolos,void *parametros){
-//TODO
-//[....]
-
+	srand(NULL);
+	int i=0;
+	uint8_t datagrama_ICMP[ICMP_DATAGRAM_MAX]={0};
+	uint8_t *aux=NULL;
+	uint16_t random_id, random_ns;
+	
+	if(longitud+8 > ICMP_DATAGRAM_MAX){
+		perror("Tamanio maximo del protocolo ICMP excedido");
+	}
+	
+	aux=datagrama_ICMP;
+	aux[0]=(Parametros*)parametros.tipo;
+	aux[1]=(Parametros*)parametros.codigo;
+	
+	//El checksum se calcula despues
+	aux[2]=0x00;
+	aux[3]=0x00;
+	
+	aux+=4;
+	
+	random_id = (uint16_t) rand() % MAX_PROTOCOL; //Generamos un numero de 16 bits aleatorio
+	random_ns = (uint16_t) rand() % MAX_PROTOCOL; //Generamos un numero de 16 bits aleatorio
+	
+	random_id = htons(random_id);
+	random_ns = htons(random_ns);
+	
+	memcpy(aux, &random_id, sizeof(random_id));
+	memcpy(aux+2, &random_ns, sizeof(random_ns));
+	
+	aux+=4;
+	
+	for(i=0; i<longitud; i++){
+		aux[i] = mensaje[i];
+	}
+	
+	return protocolos_registrados[protocolo_inferior](datagrama_ICMP,longitud+8,pila_protocolos,parametros);
 }
 
 
@@ -635,10 +669,11 @@ uint8_t inicializarPilaEnviar() {
 		return ERROR;
 	if(registrarProtocolo(IP_PROTO, moduloIP, protocolos_registrados)==ERROR)
 		return ERROR;
+	if(registrarProtocolo(ICMP_PROTO, moduloICMP, protocolos_registrados)==ERROR)
+		return ERROR;
+	if(registrarProtocolo(UDP_PROTO, moduloUDP, protocolos_registrados)==ERROR)
+		return ERROR;
 	
-//TODO
-//A registrar los modulos de UDP y ICMP [...] 
-
 	return OK;
 }
 
