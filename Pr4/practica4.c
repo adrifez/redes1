@@ -329,7 +329,7 @@ uint8_t moduloIP(uint8_t* segmento, uint64_t longitud, uint16_t* pila_protocolos
 
 	random_id = (uint16_t) rand() % MAX_PROTOCOL; //Generamos un numero de 16 bits aleatorio
 	random_id=htons(random_id);
-	memcpy(datagrama+32, &random_id, sizeof(random_id));
+	memcpy(datagrama+4, &random_id, sizeof(random_id));
 
 	aux64 = longitud + (5*4); //5 palabras de 32 bits = 5 palabras de 4 bytes
 	if(aux64 > IP_DATAGRAM_MAX){
@@ -344,14 +344,14 @@ uint8_t moduloIP(uint8_t* segmento, uint64_t longitud, uint16_t* pila_protocolos
 		last_size = (aux64-5*4) - ((fragmentos-1)*(mtu-5*4)); //Tamanio del ultimo fragmento de datos
 	}
 	
-	aux=datagrama+(32+16);
+	aux=datagrama+6;
 	aux[0]=0x00; //Flags y primer bit de posicion por defecto
 	aux[1]=0x00; //Resto de posicion por defecto
 	aux[2]=128;  //Tiempo de vida por defecto
 	//Nota: si se fragmenta se cambian despues los campos necesarios
 
 	//UDP->17, ICMP->1
-	aux+=16;
+	aux+=2;
 	if(protocolo_superior == UDP_PROTO){
 		aux[1] = 17;
 	} else if(protocolo_superior == ICMP_PROTO){
@@ -359,28 +359,28 @@ uint8_t moduloIP(uint8_t* segmento, uint64_t longitud, uint16_t* pila_protocolos
 	} else return ERROR;
 	
 	//Suma de control de cabecera
-	aux+=16;
+	aux+=2;
 	aux[0]=0x00;
 	aux[1]=0x00:
 	
-	aux+=32;
+	aux+=4;
 	aux[0]=IP_origen[0];
 	aux[1]=IP_origen[1];
 	aux[2]=IP_origen[2];
 	aux[3]=IP_origen[3];
 
-	aux+=32;
+	aux+=4;
 	aux[0]=IP_destino[0];
 	aux[1]=IP_destino[1];
 	aux[2]=IP_destino[2];
 	aux[3]=IP_destino[3];
 	
-	aux+=32; //aux=datagrama+(32*5)
+	aux+=4; //aux=datagrama+(4*5)
 	
 	if(fragmentos == -1){ //Si no hay fragmentacion, enviamos el paquete
 		aux16=(uint16_t)aux64;
 		aux16=htons(aux16);
-		memcpy(datagrama+16, &aux16, sizeof(aux16)); //Longitud total
+		memcpy(datagrama+2, &aux16, sizeof(aux16)); //Longitud total
 		
 		if(calcularChecksum(5*4, datagrama, aux8_cs)==ERROR) return ERROR;
 		//memcpy(aux, segmento, longitud); //Despues de la cabecera IP, viene la UDP con los datos; Tenemos que comprobar el orden
@@ -390,7 +390,7 @@ uint8_t moduloIP(uint8_t* segmento, uint64_t longitud, uint16_t* pila_protocolos
 		}
 		
 		//Fijamos el checksum
-		aux=datagrama+(64+16);
+		aux=datagrama+(10);
 		aux[0]=aux8_cs[0];
 		aux[1]=aux8_cs[1];
 		
@@ -399,7 +399,7 @@ uint8_t moduloIP(uint8_t* segmento, uint64_t longitud, uint16_t* pila_protocolos
 	
 	for(i=0; i<fragmentos; i++){ //Fragmentamos el paquete
 		if(i != (fragmentos-1)){
-			aux=datagrama+(32+16);
+			aux=datagrama+(6);
 			aux16 = 0x2000; //Los 3 bits de flags son 001 divisible(2º cero) more fragments (3er 1)
 			if(i!=0)aux16_1+=mtu-(5*4); //Offset (posicion)=tamanio maximo-tamanio de la cabecera (ya que es el offset del segmento)
 			offset=aux16_1/8; //Se mide en el orden de 64 Bytes
@@ -407,19 +407,19 @@ uint8_t moduloIP(uint8_t* segmento, uint64_t longitud, uint16_t* pila_protocolos
 			fl_off=htons(fl_off);			
 			memcpy(aux, &fl_off, sizeof(fl_off));
 			
-			aux=datagrama+(32*5);
+			aux=datagrama+(4*5);
 			for(j=0; j<(mtu-(5*4)); j++){ //Fijamos su correspondiente fragmento
 				aux[j]=segmento[j+aux16_1]; //sumamos el offset
 			}
 			
 			aux16=(uint16_t)mtu;
 			aux16=htons(aux16);
-			memcpy(datagrama+16, &aux16, sizeof(aux16)); //Longitud total
+			memcpy(datagrama+2, &aux16, sizeof(aux16)); //Longitud total
 		
 			if(calcularChecksum(5*4, datagrama, aux8_cs)==ERROR) return ERROR;
 		
 			//Fijamos el checksum
-			aux=datagrama+(64+16);
+			aux=datagrama+(10);
 			aux[0]=aux8_cs[0];
 			aux[1]=aux8_cs[1];
 			
@@ -427,12 +427,12 @@ uint8_t moduloIP(uint8_t* segmento, uint64_t longitud, uint16_t* pila_protocolos
 		}
 		if(i == (fragmentos-1)){ //El ultimo fragmento
 			//No hay mas fragmentos
-			aux=datagrama+(32+16);
+			aux=datagrama+(6);
 			aux16_1+=mtu-(5*4);
 			offset=aux16_1/8;
 			memcpy(aux, &offset, sizeof(offset));
 			
-			aux=datagrama+(32*5);
+			aux=datagrama+(4*5);
 			for(j=0; j<last_size; j++){ //Fijamos su correspondiente fragmento
 				aux[j]=segmento[j+aux16_1];
 			}
@@ -442,12 +442,12 @@ uint8_t moduloIP(uint8_t* segmento, uint64_t longitud, uint16_t* pila_protocolos
 			
 			aux16=(uint16_t)last_size+5*4;
 			aux16=htons(aux16);
-			memcpy(datagrama+16, &aux16, sizeof(aux16)); //Longitud total
+			memcpy(datagrama+2, &aux16, sizeof(aux16)); //Longitud total
 		
 			if(calcularChecksum(5*4, datagrama, aux8_cs)==ERROR) return ERROR;
 		
 			//Fijamos el checksum
-			aux=datagrama+(64+16);
+			aux=datagrama+(10);
 			aux[0]=aux8_cs[0];
 			aux[1]=aux8_cs[1];
 			
@@ -469,21 +469,53 @@ uint8_t moduloIP(uint8_t* segmento, uint64_t longitud, uint16_t* pila_protocolos
 ****************************************************************************************/
 
 uint8_t moduloETH(uint8_t* datagrama, uint64_t longitud, uint16_t* pila_protocolos,void *parametros){
-//TODO
-//[....]
-//[...] Variables del modulo
-uint8_t trama[ETH_FRAME_MAX]={0};
+	int i;
+	uint8_t trama[ETH_FRAME_MAX]={0}, *aux=NULL;
+	uint8_t ETH_destino[ETH_ALEN], ETH_origen[ETH_ALEN];
+	uint16_t protocolo_superior=pila_protocolos[1];
+	uint16_t eth_t;
+	struct pcap_pkthdr *cabecera=NULL;
 
-printf("modulo ETH(fisica) %s %d.\n",__FILE__,__LINE__);	
+	printf("modulo ETH(fisica) %s %d.\n",__FILE__,__LINE__);	
 
-//TODO
-//[...] Control de tamano
+	if(longitud+ETH_HLEN > ETH_FRAME_MAX){
+		perror("El paquete excede el tamanio maximo");
+		
+		return ERROR;
+	}
+	
+	ETH_destino = ((Parametros*)parametros)->ETH_destino;
+	if(obtenerMACdeInterface(interface, ETH_origen) == ERROR) return ERROR;
+	
+	aux=trama;
+	aux[0]=ETH_destino[0];
+	aux[1]=ETH_destino[1];
+	aux[2]=ETH_destino[2];
+	aux[3]=ETH_destino[3];
+	aux[4]=ETH_destino[4];
+	aux[5]=ETH_destino[5];
+	
+	aux+=6;
+	aux[0]=ETH_origen[0];
+	aux[1]=ETH_origen[1];
+	aux[2]=ETH_origen[2];
+	aux[3]=ETH_origen[3];
+	aux[4]=ETH_origen[4];
+	aux[5]=ETH_origen[5];
+	
+	aux+=6;
+	eth_t = htons(protocolo_superior);
+	memcpy(aux, &eth_t, sizeof(eth_t));
+	
+	aux+=2;
+	for(i=0; i<longitud; i++){
+		aux[i]=datagrama[i];
+	}
+	
+	if(pcap_sendpacket(descr, trama, longitud+ETH_HLEN) != 0) return ERROR;
+	
+	pcap_dump(pdumper, cabecera, trama);
 
-//TODO
-//[...] Cabecera del modulo
-
-//TODO
-//Enviar a capa fisica [...]  
 //TODO
 //Almacenamos la salida por cuestiones de debugging [...]
 	
