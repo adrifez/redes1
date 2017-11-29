@@ -538,7 +538,7 @@ uint8_t moduloETH(uint8_t* datagrama, uint64_t longitud, uint16_t* pila_protocol
 uint8_t moduloICMP(uint8_t* mensaje,uint64_t longitud, uint16_t* pila_protocolos,void *parametros){
 	srand(NULL);
 	int i=0;
-	uint8_t datagrama_ICMP[ICMP_DATAGRAM_MAX]={0};
+	uint8_t datagrama_ICMP[ICMP_DATAGRAM_MAX]={0}, aux8_cs[2];
 	uint8_t *aux=NULL;
 	uint16_t random_id, random_ns;
 	
@@ -570,6 +570,12 @@ uint8_t moduloICMP(uint8_t* mensaje,uint64_t longitud, uint16_t* pila_protocolos
 	for(i=0; i<longitud; i++){
 		aux[i] = mensaje[i];
 	}
+	
+	if(calcularChecksum(longitud+8, datagrama_ICMP, aux8_cs)==ERROR) return ERROR;
+	
+	aux=datagrama_ICMP+2;
+	aux[0]=aux8_cs[0];
+	aux[1]=aux8_cs[1];
 	
 	return protocolos_registrados[protocolo_inferior](datagrama_ICMP,longitud+8,pila_protocolos,parametros);
 }
