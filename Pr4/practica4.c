@@ -328,18 +328,19 @@ uint8_t moduloIP(uint8_t* segmento, uint64_t longitud, uint16_t* pila_protocolos
 	datagrama[1]=(Parametros*)parametros.tipo; //Tipo
 
 	random_id = (uint16_t) rand() % MAX_PROTOCOL; //Generamos un numero de 16 bits aleatorio
+	random_id=htons(random_id);
 	memcpy(datagrama+32, &random_id, sizeof(random_id));
 
 	aux64 = longitud + (5*4); //5 palabras de 32 bits = 5 palabras de 4 bytes
-	if(obtenerMTUInterface(interface, &mtu)==ERROR) return ERROR;
 	if(aux64 > IP_DATAGRAM_MAX){
 		perror("El paquete excede el tamanio maximo para un datagrama");
 		
 		return ERROR;
 	}
 	
+	if(obtenerMTUInterface(interface, &mtu)==ERROR) return ERROR;
 	if(aux64 > (uint64_t)mtu){ //En este caso fragmentamos, veamos el numero de fragmentos
-		fragmentos = (int)ceil((aux64-5*4)/(mtu-5*4)); //Restamos el tamanio destinado a la cabecera IP
+		fragmentos = (int)ceil((double)(aux64-5*4)/(double)(mtu-5*4)); //Restamos el tamanio destinado a la cabecera IP
 		last_size = (aux64-5*4) - ((fragmentos-1)*(mtu-5*4)); //Tamanio del ultimo fragmento de datos
 	}
 	
@@ -408,7 +409,7 @@ uint8_t moduloIP(uint8_t* segmento, uint64_t longitud, uint16_t* pila_protocolos
 			
 			aux=datagrama+(32*5);
 			for(j=0; j<(mtu-(5*4)); j++){ //Fijamos su correspondiente fragmento
-				aux[j]=segmento[j+aux16_1];
+				aux[j]=segmento[j+aux16_1]; //sumamos el offset
 			}
 			
 			aux16=(uint16_t)mtu;
