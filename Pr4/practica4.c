@@ -286,12 +286,10 @@ uint8_t moduloUDP(uint8_t* mensaje,uint64_t longitud, uint16_t* pila_protocolos,
 uint8_t moduloIP(uint8_t* segmento, uint64_t longitud, uint16_t* pila_protocolos,void *parametros){
 	srand(time(NULL));
 	int fragmentos=-1, i, j, last_size;
-	uint64_t length=0, aux64;
+	uint64_t aux64;
 	uint8_t datagrama[IP_DATAGRAM_MAX]={0}, flag_subred=0;
-	uint32_t aux32;
 	uint16_t aux16, aux16_1=0x0000, random_id, mtu, fl_off, offset;
-	uint8_t aux8, *aux=NULL, aux8_cs[2]={0};
-	uint32_t pos=0,pos_control=0;
+	uint8_t *aux=NULL, aux8_cs[2]={0};
 	uint8_t IP_origen[IP_ALEN], default_gateway[IP_ALEN];
 	uint16_t protocolo_superior=pila_protocolos[0];
 	uint16_t protocolo_inferior=pila_protocolos[2];
@@ -318,14 +316,14 @@ uint8_t moduloIP(uint8_t* segmento, uint64_t longitud, uint16_t* pila_protocolos
 	}
 	
 	if(flag_subred == 0){ //Si estan en la misma subred
-		if(ARPrequest(interface, IP_destino, (Parametros*)parametros.ETH_destino) == ERROR) return ERROR; //Obtenemos la MAC a la que hemos de enviar el paquete
+		if(ARPrequest(interface, IP_destino, ((Parametros*)parametros)->ETH_destino) == ERROR) return ERROR; //Obtenemos la MAC a la que hemos de enviar el paquete
 	} else{ //Si no estan en la misma subred
 		if(obtenerGateway(interface, default_gateway)==ERROR) return ERROR; //IP del siguiente salto
-		if(ARPrequest(interface, default_gateway, (Parametros*)parametros.ETH_destino) == ERROR) return ERROR; //Obtenemos la MAC a la que hemos de enviar el paquete
+		if(ARPrequest(interface, default_gateway, ((Parametros*)parametros)->ETH_destino) == ERROR) return ERROR; //Obtenemos la MAC a la que hemos de enviar el paquete
 	}
 	
 	datagrama[0]=0x45; // IPv4 IHL=5 -> 5 palabras de 32 bits
-	datagrama[1]=(Parametros*)parametros.tipo; //Tipo
+	datagrama[1]=((Parametros*)parametros)->tipo; //Tipo
 
 	random_id = (uint16_t) rand() % MAX_PROTOCOL; //Generamos un numero de 16 bits aleatorio
 	random_id=htons(random_id);
@@ -361,7 +359,7 @@ uint8_t moduloIP(uint8_t* segmento, uint64_t longitud, uint16_t* pila_protocolos
 	//Suma de control de cabecera
 	aux+=2;
 	aux[0]=0x00;
-	aux[1]=0x00:
+	aux[1]=0x00;
 	
 	aux+=4;
 	aux[0]=IP_origen[0];
@@ -454,6 +452,8 @@ uint8_t moduloIP(uint8_t* segmento, uint64_t longitud, uint16_t* pila_protocolos
 			return protocolos_registrados[protocolo_inferior](datagrama,(uint64_t)last_size+5*4,pila_protocolos,parametros);	
 		}
 	}
+	
+	return ERROR;
 }
 
 
@@ -471,7 +471,7 @@ uint8_t moduloIP(uint8_t* segmento, uint64_t longitud, uint16_t* pila_protocolos
 uint8_t moduloETH(uint8_t* datagrama, uint64_t longitud, uint16_t* pila_protocolos,void *parametros){
 	int i;
 	uint8_t trama[ETH_FRAME_MAX]={0}, *aux=NULL;
-	uint8_t ETH_destino[ETH_ALEN], ETH_origen[ETH_ALEN];
+	uint8_t *ETH_destino, ETH_origen[ETH_ALEN];
 	uint16_t protocolo_superior=pila_protocolos[1];
 	uint16_t eth_t;
 	struct pcap_pkthdr cabecera;
@@ -518,7 +518,7 @@ uint8_t moduloETH(uint8_t* datagrama, uint64_t longitud, uint16_t* pila_protocol
 	cabecera.len=longitud+ETH_HLEN;
 	cabecera.caplen=longitud+ETH_HLEN;
 	
-	pcap_dump(pdumper, &cabecera, trama);
+	pcap_dump((uint8_t *)pdumper, &cabecera, trama);
 
 	return OK;
 }
@@ -539,6 +539,7 @@ uint8_t moduloICMP(uint8_t* mensaje,uint64_t longitud, uint16_t* pila_protocolos
 	srand(time(NULL));
 	int i=0;
 	uint8_t datagrama_ICMP[ICMP_DATAGRAM_MAX]={0}, aux8_cs[2];
+	uint16_t protocolo_inferior=pila_protocolos[1];
 	uint8_t *aux=NULL;
 	uint16_t random_id, random_ns;
 	
@@ -547,8 +548,8 @@ uint8_t moduloICMP(uint8_t* mensaje,uint64_t longitud, uint16_t* pila_protocolos
 	}
 	
 	aux=datagrama_ICMP;
-	aux[0]=(Parametros*)parametros.tipo;
-	aux[1]=(Parametros*)parametros.codigo;
+	aux[0]=((Parametros*)parametros)->tipo;
+	aux[1]=((Parametros*)parametros)->codigo;
 	
 	//El checksum se calcula despues
 	aux[2]=0x00;
