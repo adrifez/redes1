@@ -287,12 +287,12 @@ uint8_t moduloIP(uint8_t* segmento, uint64_t longitud, uint16_t* pila_protocolos
 	srand(NULL);
 	int fragmentos=-1, i, j, last_size;
 	uint64_t length=0, aux64;
-	uint8_t datagrama[IP_DATAGRAM_MAX]={0};
+	uint8_t datagrama[IP_DATAGRAM_MAX]={0}, flag_subred=0;
 	uint32_t aux32;
 	uint16_t aux16, aux16_1=0x0000, random_id, mtu, fl_off, offset;
 	uint8_t aux8, *aux=NULL, aux8_cs[2]={0};
 	uint32_t pos=0,pos_control=0;
-	uint8_t IP_origen[IP_ALEN];
+	uint8_t IP_origen[IP_ALEN], default_gateway[IP_ALEN];
 	uint16_t protocolo_superior=pila_protocolos[0];
 	uint16_t protocolo_inferior=pila_protocolos[2];
 	pila_protocolos++;
@@ -305,9 +305,25 @@ uint8_t moduloIP(uint8_t* segmento, uint64_t longitud, uint16_t* pila_protocolos
 	
 	if(obtenerIPInterface(interface, IP_origen) == ERROR) return ERROR;
 	
-	//ESTA MAL, TENEMOS QUE COMPROBAR RANGOS PARA ENVIAR ARP DE LA DIRECCION IP DESTINO CORRECTA
-	if(ARPrequest(interface, IP_destino, (Parametros*)parametros.ETH_destino) == ERROR) return ERROR; //Obtenemos la MAC a la que hemos de enviar el paquete
-	 
+	if(obtenerMascaraInterface(interface, mascara) == ERROR) return ERROR;
+	
+	//Comprobamos si la ip de origen y la de destino estan en la misma subred
+	if(aplicarMascara(IP_origen, mascara, IP_ALEN, IP_rango_origen) == ERROR) return ERROR;
+	if(aplicarMascara(ipdatos.IP_destino, mascara, IP_ALEN, IP_rango_destino) == ERROR) return ERROR;
+	
+	for(i=0; i<IP_ALEN; i++){ //Comprobamos si estan en la misma subred
+		if(IP_rango_origen[i] != IP_rango_destino[i]){ //Si no son iguales
+			flag_subred=-1;
+		}
+	}
+	
+	if(flag_subred == 0){ //Si estan en la misma subred
+		if(ARPrequest(interface, IP_destino, (Parametros*)parametros.ETH_destino) == ERROR) return ERROR; //Obtenemos la MAC a la que hemos de enviar el paquete
+	} else{ //Si no estan en la misma subred
+		if(obtenerGateway(interface, default_gateway)==ERROR) return ERROR; //IP del siguiente salto
+		if(ARPrequest(interface, default_gateway, (Parametros*)parametros.ETH_destino) == ERROR) return ERROR; //Obtenemos la MAC a la que hemos de enviar el paquete
+	}
+	
 	datagrama[0]=0x45; // IPv4 IHL=5 -> 5 palabras de 32 bits
 	datagrama[1]=(Parametros*)parametros.tipo; //Tipo
 
