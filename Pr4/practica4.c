@@ -28,8 +28,7 @@ void handleSignal(int nsignal){
 	exit(OK);
 }
 
-int main(int argc, char **argv){	
-
+int main(int argc, char **argv){
 	char errbuf[PCAP_ERRBUF_SIZE];
 	char fichero_pcap_destino[CADENAS];
 	uint8_t IP_destino_red[IP_ALEN];
@@ -106,7 +105,7 @@ int main(int argc, char **argv){
 					}
 					fclose(archivo_datos);
 					sprintf(fichero_pcap_destino,"%s%s",optarg,".pcap");
-				}
+				}		
 				flag_file = 1;
 
 				break;
@@ -206,11 +205,11 @@ int main(int argc, char **argv){
 
 uint8_t enviar(uint8_t* mensaje, uint64_t longitud,uint16_t* pila_protocolos,void *parametros){
 	uint16_t protocolo=pila_protocolos[0];
-printf("Enviar(%"PRIu16") %s %d.\n",protocolo,__FILE__,__LINE__);
+	printf("Enviar(%"PRIu16") %s %d.\n",protocolo,__FILE__,__LINE__);
 	if(protocolos_registrados[protocolo]==NULL){
 		printf("Protocolo %"PRIu16" desconocido\n",protocolo);
 		return ERROR;
-	}
+	}	
 	else {
 		return protocolos_registrados[protocolo](mensaje,longitud,pila_protocolos,parametros);
 	}
@@ -233,7 +232,7 @@ uint8_t moduloUDP(uint8_t* mensaje,uint64_t longitud, uint16_t* pila_protocolos,
 	int i=0;
 	uint16_t puerto_origen = 0;
 	uint16_t aux16;
-	uint64_t pos=0;
+	uint64_t pos=0,long_aux;
 	uint16_t protocolo_inferior=pila_protocolos[1];
 	
 	printf("modulo UDP(%"PRIu16") %s %d.\n",protocolo_inferior,__FILE__,__LINE__);
@@ -246,13 +245,17 @@ uint8_t moduloUDP(uint8_t* mensaje,uint64_t longitud, uint16_t* pila_protocolos,
 	Parametros udpdatos=*((Parametros*)parametros);
 	uint16_t puerto_destino=udpdatos.puerto_destino;
 	if(obtenerPuertoOrigen(&puerto_origen)==ERROR) return ERROR;
+	
 	aux16=htons(puerto_origen);
-
 	memcpy(segmento+pos,&aux16,sizeof(uint16_t));
 	pos+=sizeof(uint16_t);
+	
+	puerto_destino=htons(puerto_destino);
 	memcpy(segmento+pos,&puerto_destino,sizeof(uint16_t));
 	pos+=sizeof(uint16_t);
-	memcpy(segmento+pos,&longitud,sizeof(uint16_t));
+	
+	long_aux=htons(longitud);
+	memcpy(segmento+pos,&long_aux,sizeof(uint16_t));
 	pos+=sizeof(uint16_t);
 
 	//El checksum se deja a 0 por simplicidad
@@ -349,19 +352,19 @@ uint8_t moduloIP(uint8_t* segmento, uint64_t longitud, uint16_t* pila_protocolos
 	//Nota: si se fragmenta se cambian despues los campos necesarios
 
 	//UDP->17, ICMP->1
-	aux+=2;
+	aux+=3;
 	if(protocolo_superior == UDP_PROTO){
-		aux[1] = 17;
+		aux[0] = 17;
 	} else if(protocolo_superior == ICMP_PROTO){
-		aux[1] = 1;
+		aux[0] = 1;
 	} else return ERROR;
 	
 	//Suma de control de cabecera
-	aux+=2;
+	aux++;
 	aux[0]=0x00;
 	aux[1]=0x00;
 	
-	aux+=4;
+	aux+=2;
 	aux[0]=IP_origen[0];
 	aux[1]=IP_origen[1];
 	aux[2]=IP_origen[2];
@@ -394,7 +397,7 @@ uint8_t moduloIP(uint8_t* segmento, uint64_t longitud, uint16_t* pila_protocolos
 		
 		return protocolos_registrados[protocolo_inferior](datagrama,aux64,pila_protocolos,parametros);
 	}
-	
+
 	for(i=0; i<fragmentos; i++){ //Fragmentamos el paquete
 		if(i != (fragmentos-1)){
 			aux=datagrama+(6);
@@ -428,6 +431,7 @@ uint8_t moduloIP(uint8_t* segmento, uint64_t longitud, uint16_t* pila_protocolos
 			aux=datagrama+(6);
 			aux16_1+=mtu-(5*4);
 			offset=aux16_1/8;
+			offset=htons(offset);
 			memcpy(aux, &offset, sizeof(offset));
 			
 			aux=datagrama+(4*5);
@@ -472,7 +476,8 @@ uint8_t moduloETH(uint8_t* datagrama, uint64_t longitud, uint16_t* pila_protocol
 	int i;
 	uint8_t trama[ETH_FRAME_MAX]={0}, *aux=NULL;
 	uint8_t *ETH_destino, ETH_origen[ETH_ALEN];
-	uint16_t protocolo_superior=pila_protocolos[1];
+	uint16_t protocolo_superior=pila_protocolos[0];
+	pila_protocolos++;
 	uint16_t eth_t;
 	struct pcap_pkthdr cabecera;
 
